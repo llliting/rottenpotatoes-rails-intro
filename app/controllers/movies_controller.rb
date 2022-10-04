@@ -9,7 +9,7 @@ class MoviesController < ApplicationController
   def index
     @all_ratings = Movie.all_rating
 
-    @sort_by = params[:sort_by]||session[:sort_by]||'title'
+    @sort_by = params[:sort_by]||session[:sort_by]||''
 
     if !params[:ratings].nil?
 	@movies = Movie.with_ratings(params[:ratings].keys).order(@sort_by)
@@ -21,6 +21,10 @@ class MoviesController < ApplicationController
 	@movies = Movie.all.order(@sort_by)	    
        	@ratings_to_show = Hash[@all_ratings.collect { |i| [i, "1"] }]
     end
+    
+
+	#redirect_to movies_path(:ratings => @ratings_to_show, :sort_by => @sort_by)
+	
 
     session['ratings'] = @ratings_to_show
     session['sort_by'] = @sort_by
