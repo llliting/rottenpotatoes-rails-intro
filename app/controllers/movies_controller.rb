@@ -9,26 +9,33 @@ class MoviesController < ApplicationController
   def index
     @all_ratings = Movie.all_rating
 
-    @sort_by = params[:sort_by]||session[:sort_by]||''
-    session[:ratings] = @ratings_to_show
+    @sort_by = params[:sort_by]||session[:sort_by]||'title'
+    #@ratings = params[:ratings]&.keys || session[:ratings] || Movie.all_rating
+    #@rating_hash = 
     session[:sort_by] = @sort_by
 
-    if !params[:ratings].nil?
-	@movies = Movie.with_ratings(params[:ratings].keys).order(@sort_by)
-	@ratings_to_show = params[:ratings]
-    elsif !session[:ratings].nil?
-      	@movies = Movie.with_ratings(session[:ratings]).order(@sort_by)
-      	@ratings_to_show = session[:ratings]
-    else
-	@movies = Movie.all.order(@sort_by)	    
-       	@ratings_to_show = Hash[@all_ratings.collect { |i| [i, "1"] }]
+    if params[:ratings].nil? && session[:ratings].nil?
+      @movies = Movie.all.order(@sort_by)	    
+      @ratings_to_show = Hash[Movie.all_rating.collect{|i|[i, "1"]}]
+      session[:ratings] = Movie.all_rating
+      redirect_to movies_path(:ratings => @rating_hash, :sort_by => 'title') and return
+
+    elsif !params[:ratings].nil?
+      @movies = Movie.with_ratings(params[:ratings].keys).order(@sort_by)
+      @ratings_to_show = params[:ratings]
+      session[:ratings] = params[:ratings].keys
+
+    else #use session
+      @movies = Movie.with_ratings(session[:ratings]).order(@sort_by)
+      @ratings_to_show = Hash[session[:ratings].collect{|i|[i, "1"]}]
+      redirect_to movies_path(:ratings => Hash[session[:ratings].collect{|i|[i, "1"]}], :sort_by => @sort_by) and return
+
     end
-    
+   
 
-	#redirect_to movies_path(:ratings => @ratings_to_show, :sort_by => @sort_by)
-	
-
-    
+    #session[:ratings] = @ratings
+    #session[:sort_by] = @sort_by
+    #redirect_to movies_path(:ratings => @ratings_to_show, :sort_by => @sort_by)
 
     if @sort_by == 'release_date'
       @date_style = 'bg-warning hilite'
